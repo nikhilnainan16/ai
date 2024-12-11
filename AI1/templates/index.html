@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chatbot</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="chat-container">
+        <div id="chatWindow" class="chat-box">
+            <div class="chat-messages">
+                {% if answer %}
+                    <div class="message user-message">
+                        <strong>You:</strong>
+                        <p>{{ question }}</p>
+                    </div>
+                    <div class="message bot-message">
+                        <strong>Bot:</strong>
+                        <p>{{ answer }}</p>
+                    </div>
+                {% else %}
+                    <div class="message">
+                        <p>Hi, how can I assist you today?</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="chat-form">
+            <input id="userInput" type="text" name="question" placeholder="Type your question..." required>
+            <button id="send" type="button">Send</button>
+        </div>
+    </div>
+
+    <!-- JavaScript -->
+    <script>
+        document.getElementById("send").addEventListener("click", function () {
+            const userInput = document.getElementById("userInput").value;
+            const chatWindow = document.getElementById("chatWindow");
+
+            if (userInput.trim() === "") {
+                alert("Please enter a message.");
+                return;
+            }
+
+            
+            const userMessage = document.createElement("div");
+            userMessage.classList.add("message", "user-message");
+            userMessage.innerHTML = `<strong>You:</strong> <p>${userInput}</p>`;
+            chatWindow.appendChild(userMessage);
+
+            document.getElementById("userInput").value = "";
+
+          
+            fetch("/chat", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ user_input: userInput }),
+            })
+                .then((response) => response.json())
+                .then((data) => {
+                    // Display bot's response
+                    const botMessage = document.createElement("div");
+                    botMessage.classList.add("message", "bot-message");
+                    botMessage.innerHTML = `<strong>Bot:</strong> <p>${data.bot}</p>`;
+                    chatWindow.appendChild(botMessage);
+
+                    // Scroll to the bottom of the chat window
+                    chatWindow.scrollTop = chatWindow.scrollHeight;
+                })
+                .catch((error) => {
+                    console.error("Error:", error);
+                });
+        });
+    </script>
+</body>
+</html>
+
